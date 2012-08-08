@@ -1,6 +1,8 @@
 {
   "name": "node-example",
   "version": "0.0.1",
+  "author": "Atul Varma <varmaa@gmail.com>",
+  "description": "Publish your X-Ray Goggles hacks to your own S3 bucket.",
   "scripts": {
     "test": "node_modules/.bin/mocha -R spec"
   },
