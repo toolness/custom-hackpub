@@ -41,7 +41,7 @@ app.post('/:key/:secret/:bucket/:domain/publish', function(req, res) {
   // TODO: process original-url too.
   var s3 = app.knox.createClient({
     key: req.params.key,
-    secret: req.params.secret,
+    secret: req.params.secret.replace(/__slash__/g, '/'),
     bucket: req.params.bucket
   });
 
@@ -68,7 +68,7 @@ app.post('/:key/:secret/:bucket/:domain/publish', function(req, res) {
   });
 });
 
-//app.use(express.static(__dirname + '/static'));
+app.use(express.static(__dirname + '/static'));
 
 module.exports = app;
 

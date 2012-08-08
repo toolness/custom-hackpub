@@ -69,6 +69,18 @@ function simplePublish(options) {
 }
 
 describe("POST /key/secret/bucket/domain.org/publish", function() {
+  it("should translate slashes in the secret", function(done) {
+    setupFakeKnox();
+    return request(app)
+      .post('/key/a__slash__b__slash__c/bucket/domain.org/publish')
+      .send({html: 'hey\u2026'})
+      .end(function(err, res) {
+        if (err) return done(err);
+        expect(app.knox.clientOptions.secret).to.be('a/b/c');
+        done();
+      })
+  });
+  
   it("should reject publishes bigger than 1mb", function(done) {
     var buf = new Buffer(app.MAX_BODY_SIZE + 1);
     buf.fill("a");
