@@ -73,7 +73,12 @@ module.exports = app;
 
 var port = process.env.PORT || 5000;
 
-if (!module.parent)
+if (!module.parent) {
+  process.on('uncaughtException', function (err) {
+    console.log('Caught exception: ' + err);
+  });
+  
   app.listen(port, function() {
     console.log("Listening on " + port);
   });
+}
