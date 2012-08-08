@@ -61,13 +61,26 @@ body {
         Bookmarklet</button>
     </div>
   </form>
-  <div id="result" style="display: none">
-    <p>Your custom X-Ray Goggles bookmarklet is here:</p>
-    <p><a href="#" class="btn btn-success" id="bookmarklet"></a></p>
-    <p>Drag it to your bookmarks bar and start webmaking!</p>
+  <div class="modal hide fade" id="progress">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3></h3>
+    </div>
+    <div class="modal-body">
+      <img src="throbber.gif" class="throbber">
+      <div class="failure">
+        <p>An error occurred. Please double-check your credentials.</p>
+      </div>
+      <div class="success">
+        <p>Your custom X-Ray Goggles bookmarklet is here:</p>
+        <p><a href="#" class="btn btn-success bookmarklet"></a></p>
+        <p>Drag it to your bookmarks bar and start webmaking!</p>
+      </div>
+    </div>
   </div>
 </div>
 <script src="jquery.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
 <script>
 var PUBLISHER_BASE_URL = location.protocol + "//" + location.host + "/";
 var GOGGLES_BASE_URL = "http://dev-goggles.hksr.us/";
@@ -89,11 +102,17 @@ function getBookmarkletURL(baseURI, hackpubURI) {
 }
 
 $("#create-bookmarklet").submit(function() {
-  var form = this;
-  var result = $("#result");
-  var key = $("#aws-key", this).val();
-  var secret = $("#aws-secret", this).val();
-  var bucket = $("#s3-bucket", this).val();
+  var dialog = $("#progress");
+  var success = $(".success", dialog);
+  var failure = $(".failure", dialog);
+  var bookmarklet = $("a.bookmarklet", dialog);
+  var throbber = $(".throbber", dialog);
+  var dialogTitle = $("h3", dialog);
+  
+  var form = $(this);
+  var key = $("#aws-key", form).val();
+  var secret = $("#aws-secret", form).val();
+  var bucket = $("#s3-bucket", form).val();
   
   if (!(key && secret && bucket)) {
     alert("Please fill out all the form fields.");
@@ -105,24 +124,36 @@ $("#create-bookmarklet").submit(function() {
     secret: secret,
     bucket: bucket
   });
-  testPublish(hackpubURL, function(err) {
+  
+  var req = testPublish(hackpubURL, function(err) {
+    dialog.unbind('hide');
+    throbber.hide();
     if (err) {
-      alert("An error occurred. Please double-check your credentials.");
-      $(form).slideDown();
+      if (err.reason == "abort")
+        return;
+      dialogTitle.text("Error");
+      failure.slideDown();
     } else {
-      $("#bookmarklet")
+      dialogTitle.text("Success");
+      bookmarklet
         .attr("href", getBookmarkletURL(GOGGLES_BASE_URL, hackpubURL))
         .text(bucket + " Web X-Ray Goggles");
-      $(result).slideDown();
+      success.slideDown();
     }
   });
-  $(form).slideUp("slow");
   
+  dialog.modal();
+  dialog.bind('hide', function() { req.abort(); });
+  dialogTitle.text("Creating Bookmarklet\u2026");
+  success.hide();
+  throbber.show();
+  failure.hide();
+
   return false;
 });
 
 function testPublish(hackpubURL, cb) {
-  jQuery.ajax({
+  return jQuery.ajax({
     type: 'POST',
     url: hackpubURL + 'publish',
     data: {
@@ -131,8 +162,11 @@ function testPublish(hackpubURL, cb) {
     },
     crossDomain: true,
     timeout: 8000,
-    error: function(req) {
-      cb("error - " + req.status);
+    error: function(req, reason) {
+      cb({
+        status: req.status,
+        reason: reason
+      });
     },
     success: function(data) {
       if (typeof(data) == 'string')
