@@ -7,9 +7,6 @@ var app = express.createServer();
 app.MAX_BODY_SIZE = parseInt(process.env.MAX_BODY_SIZE || '1024');
 app.knox = knox;
 
-if (!module.parent)
-  app.use(express.logger());
-
 function putIntoRandomLocation(s3, content, options, cb) {
   function tryAnotherLocation() {
     return putIntoRandomLocation(s3, content, options, cb);
