@@ -14,15 +14,53 @@
 body {
   margin-top: 1em;
 }
+
+#more-info p {
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 18px;
+}
 </style>
 <div class="container">
   <div class="hero-unit">
     <h1>Make Your Own Custom Hack Publisher</h1>
-    <p>First, sign up for <a href="http://aws.amazon.com/s3/">Amazon S3</a>, 
+    <p>Just sign up for <a href="http://aws.amazon.com/s3/">Amazon S3</a>, 
       then use the form below to create a custom version of the
       <a href="http://hackasaurus.org/">Hackasaurus</a> X-Ray Goggles to
       use in your <a href="https://webmaker.org/">Webmaker</a> 
       activities.</p>
+    <p><a id="learn-more" class="btn btn-primary btn-large">Learn 
+      more &raquo;</a></p>
+    <div id="more-info" style="display: none">
+      <hr>
+      <h3>What is this?</h3>
+      <p>It's an experiment that puts you in charge of your own data.</p>
+      <p>The X-Ray Goggles and S3 are only the beginning; imagine being
+        able to have all of Mozilla’s 
+        <a href="https://webmaker.org/en-US/tools/">Webmaker Tools</a> 
+        easily publish to any location of your choice, be it 
+        your <a href="http://dropbox.com/">Dropbox</a>, a 
+        <a href="http://github.com/">Github</a> repository, 
+        <a href="http://owncloud.org/">owncloud.org</a>, or a custom
+        Web server in your school’s intranet.</p>
+      <h3>Does this support Web Intents?</h3>
+      <p>Alas, it doesn’t currently support them, but it should.
+        <a href="http://webintents.org/">Web Intents</a> seem cool.</p>
+      <h3>Who made this?</h3>
+      <p>Atul Varma did. Feel free to tweet 
+        <a href="http://twitter.com/toolness">@toolness</a> if you have any 
+        thoughts about this experiment.</p>
+      <h3>Is this secure?</h3>
+      <p>This quick prototype isn’t nearly as secure as it ought to be.
+        Your AWS secret, for instance, is contained in the source code
+        of the bookmarklet; a better solution would be to store it securely on 
+        the server, and have the server use rate limiting or data allowances
+        to enforce a <a href="http://en.wikipedia.org/wiki/Principle_of_least_privilege">principle
+        of least authority</a> to the outside world.</p>
+      <p>For now, if you use
+        this service, you should probably create a temporary <a href="http://docs.amazonwebservices.com/AWSSecurityCredentials/1.0/AboutAWSCredentials.html#AccessKeys">AWS Access Key</a> specific to it, and then delete
+         the key when you’re done using the bookmarklet.</p>
+    </div>
   </div>
   <form class="form-horizontal" id="create-bookmarklet">
     <fieldset>
@@ -100,6 +138,12 @@ function getBookmarkletURL(baseURI, hackpubURI) {
   code = code.replace('http://hackpub.hackasaurus.org/', hackpubURI);
   return 'javascript:' + code;
 }
+
+$("#learn-more").click(function() {
+  $(this).fadeOut(function() {
+    $("#more-info").fadeIn();
+  });
+});
 
 $("#create-bookmarklet").submit(function() {
   var dialog = $("#progress");
