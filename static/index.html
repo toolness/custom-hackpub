@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<title>Make Your Own Custom Hack Publisher!</title>
+<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+<style>
+body {
+  margin-top: 1em;
+}
+</style>
+<div class="container">
+  <div class="hero-unit">
+    <h1>Make Your Own Custom Hack Publisher</h1>
+    <p>First, sign up for <a href="http://aws.amazon.com/s3/">Amazon S3</a>, 
+      then use the form below to create a custom version of the
+      <a href="http://hackasaurus.org/">Hackasaurus</a> X-Ray Goggles to
+      use in your <a href="https://webmaker.org/">Webmaker</a> 
+      activities.</p>
+  </div>
+  <form class="form-horizontal" id="create-bookmarklet">
+    <fieldset>
+      <div class="control-group">
+        <label class="control-label" for="aws-key">Access Key ID</label>
+        <div class="controls">
+          <input type="text" class="input-xlarge" id="aws-key">
+          <p class="help-block">
+            You can make new keys at the <a href="https://portal.aws.amazon.com/gp/aws/securityCredentials#access_credentials">AWS Access Credentials</a> page.
+          </p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="aws-secret">Secret Access 
+          Key</label>
+        <div class="controls">
+          <input type="text" class="input-xlarge" id="aws-secret"
+                 autocomplete = "off">
+          <p class="help-block">
+            This is also visible on the <a href="https://portal.aws.amazon.com/gp/aws/securityCredentials#access_credentials">AWS Access Credentials</a> page.
+          </p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="s3-bucket">Bucket Name</label>
+        <div class="controls">
+          <input type="text" class="input-xlarge" id="s3-bucket">
+          <p class="help-block">
+            You can create a bucket at the <a href="https://console.aws.amazon.com/s3/home">S3 Management Console</a>.
+          </p>
+        </div>
+      </div>
+    </fieldset>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create 
+        Bookmarklet</button>
+    </div>
+  </form>
+  <div id="result" style="display: none">
+    <p>Your custom X-Ray Goggles bookmarklet is here:</p>
+    <p><a href="#" class="btn btn-success" id="bookmarklet"></a></p>
+    <p>Drag it to your bookmarks bar and start webmaking!</p>
+  </div>
+</div>
+<script src="jquery.min.js"></script>
+<script>
+var PUBLISHER_BASE_URL = 'https://polar-lake-4139.herokuapp.com/';
+var GOGGLES_BASE_URL = "http://dev-goggles.hksr.us/";
+
+function makeHackpubURL(options) {
+  var domain = options.domain || (options.bucket + '.s3.amazonaws.com');
+  var baseURL = options.baseURL || PUBLISHER_BASE_URL;
+  return baseURL + options.key + '/' +
+         options.secret.replace(/\//g, '__slash__') +
+         '/' + options.bucket + '/' + domain + '/';
+}
+
+function getBookmarkletURL(baseURI, hackpubURI) {
+  var hackpubCode = "var oldLoad = window.webxrayWhenGogglesLoad;window.webxrayWhenGogglesLoad=function(ui){ui.jQuery.webxraySettings.hackpubURL='http://hackpub.hackasaurus.org/';if (typeof(oldLoad)=='function'){oldLoad(ui);}};";
+  var baseCode = "(function(){" + hackpubCode + "var script=document.createElement('script');script.src='http://localhost:8000/webxray.js';script.className='webxray';document.body.appendChild(script);})();";
+  var code = baseCode.replace('http://localhost:8000/', baseURI);  
+  code = code.replace('http://hackpub.hackasaurus.org/', hackpubURI);
+  return 'javascript:' + code;
+}
+
+$("#create-bookmarklet").submit(function() {
+  var form = this;
+  var result = $("#result");
+  var key = $("#aws-key", this).val();
+  var secret = $("#aws-secret", this).val();
+  var bucket = $("#s3-bucket", this).val();
+  
+  if (!(key && secret && bucket)) {
+    alert("Please fill out all the form fields.");
+    return false;
+  }
+
+  var hackpubURL = makeHackpubURL({
+    key: key,
+    secret: secret,
+    bucket: bucket
+  });
+  testPublish(hackpubURL, function(err) {
+    if (err) {
+      alert("An error occurred. Please double-check your credentials.");
+      $(form).slideDown();
+    } else {
+      $("#bookmarklet")
+        .attr("href", getBookmarkletURL(GOGGLES_BASE_URL, hackpubURL))
+        .text(bucket + " Web X-Ray Goggles");
+      $(result).slideDown();
+    }
+  });
+  $(form).slideUp("slow");
+  
+  return false;
+});
+
+function testPublish(hackpubURL, cb) {
+  jQuery.ajax({
+    type: 'POST',
+    url: hackpubURL + 'publish',
+    data: {
+      'html': 'This is a test page from ' + window.location.href +
+              ' to ensure that publishing works.'
+    },
+    crossDomain: true,
+    timeout: 8000,
+    error: function(req) {
+      cb("error - " + req.status);
+    },
+    success: function(data) {
+      if (typeof(data) == 'string')
+        data = JSON.parse(data);
+      console.log("HTML published to " + data['published-url']);
+      cb(null);
+    }
+  });
+}
+</script>
