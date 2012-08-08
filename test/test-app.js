@@ -2,6 +2,8 @@ var expect = require('expect.js');
 var request = require('supertest');
 var app = require('../app');
 
+app.log = function() {};
+
 function setupFakeKnox(options) {
   options = options || {};
   

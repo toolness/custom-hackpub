@@ -6,6 +6,7 @@ var app = express.createServer();
 
 app.MAX_BODY_SIZE = parseInt(process.env.MAX_BODY_SIZE || '1048576');
 app.knox = knox;
+app.log = console.log;
 
 function putIntoRandomLocation(s3, content, options, cb) {
   function tryAnotherLocation() {
@@ -58,10 +59,11 @@ app.post('/:key/:secret/:bucket/:domain/publish', function(req, res) {
       res.send({
         message: err
       }, 500);
-    else
-      res.send({
-        'published-url': 'http://' + req.params.domain + result.location
-      });
+    else {
+      var publishedURL = 'http://' + req.params.domain + result.location;
+      app.log("published " + html.length + " bytes to " + publishedURL);
+      res.send({'published-url': publishedURL});
+    }
   });
 });
 
