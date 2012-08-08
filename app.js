@@ -4,7 +4,7 @@ var generateRandomKey = require('./generate-random-key');
 
 var app = express.createServer();
 
-app.MAX_BODY_SIZE = parseInt(process.env.MAX_BODY_SIZE || '1024');
+app.MAX_BODY_SIZE = parseInt(process.env.MAX_BODY_SIZE || '1048576');
 app.knox = knox;
 
 function putIntoRandomLocation(s3, content, options, cb) {
