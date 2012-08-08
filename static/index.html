@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <title>Make Your Own Custom Hack Publisher!</title>
+<script>
+(function() {
+  if (location.host.match(/herokuapp\.com$/) &&
+      window.location.protocol == "http:") {
+    // Redirect to https.
+    window.location = "https://" + location.host;
+  }
+})();
+</script>
 <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
 <style>
 body {
@@ -60,7 +69,7 @@ body {
 </div>
 <script src="jquery.min.js"></script>
 <script>
-var PUBLISHER_BASE_URL = 'https://polar-lake-4139.herokuapp.com/';
+var PUBLISHER_BASE_URL = location.protocol + "//" + location.host + "/";
 var GOGGLES_BASE_URL = "http://dev-goggles.hksr.us/";
 
 function makeHackpubURL(options) {
