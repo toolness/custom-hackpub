@@ -7,7 +7,7 @@
     "test": "node_modules/.bin/mocha -R spec"
   },
   "dependencies": {
-    "express": "2.5.x",
+    "express": "4.17.x",
     "knox": "0.0.x"
   },
   "devDependencies": {
